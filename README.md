@@ -8,7 +8,7 @@
 To install use the  `Menu - Manage palette - Install`  option and search for @joe-ab1do/mcp-pcf-aio, or run the following command in your Node-RED user directory, typically `~/.node-red`
 
     npm i @joe-ab1do/mcp-pcf-aio
-test
+    
 ## Usage
 
 Provides three nodes, one to use a pin as an input and one to use a pin as an output. The third node is a (hidden) configuration node that is used to define a physical i2c port expander chip (chip type, i2c-bus and address). Pins already in use by one of the nodes associated with a chip cannot be reselected in another node associated with the same chip.
