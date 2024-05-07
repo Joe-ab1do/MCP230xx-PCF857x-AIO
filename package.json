@@ -1,0 +1,44 @@
+{
+  "name": "@joe-ab1do/mcp-pcf-aio",
+  "version": "3.2.2",
+  "description": "Node-Red nodes for i2c port expanders MCP23008, MCP23017, PCF8574(A) & PCF8575",
+  "bundleDependencies": [],
+  "dependencies": {
+    "i2c-bus": "^5.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Joe-ab1do/mcp230xx-pcf857x-aio"
+  },
+  "license": "MIT",
+  "keywords": [
+    "node-red",
+    "mcp23008",
+    "mcp23017",
+    "pcf8574",
+    "pcf8574A",
+    "pcf8575"
+  ],
+  "node-red": {
+    "version": ">1.0.0",
+    "nodes": {
+      "mcp-pcf-aio": "mcp-pcf-aio.js"
+    }
+  },
+  "engines": {
+    "node": ">=12",
+    "node-red": ">1"
+  },
+  "deprecated": false,
+  "bugs": {
+    "url": "https://github.com/Joe-ab1do/MCP230xx-PCF857x-AIO/issues"
+  },
+  "homepage": "https://github.com/Joe-ab1do/MCP230xx-PCF857x-AIO#readme",
+  "author": {
+    "name": "Joe de Groot",
+    "email": "ab1do@optonline.net"
+  },  
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

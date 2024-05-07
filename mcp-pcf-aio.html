@@ -1,0 +1,657 @@
+<!-- CHIP SECTION -->
+<script type="text/javascript">
+	RED.nodes.registerType('mcp pcf chip', { //chip configuration node
+		category: 'config',
+		defaults: {
+			chipType: {value:"MCP23008", required: true },
+			busNum: { value:"", required: true, validate: function(v) {
+				if (v == null||v == undefined||v==""){
+					return false;
+				} else {
+					return true;
+				} 
+			}},
+			addr: { value: "", required: true, validate: function(v) {
+				if (v==null||v==""){
+					$(".pins").hide()
+					return false;
+				} else {
+					$(".pins").show()
+					return true;
+				} 
+			}},
+			mcpInputOverride: {value:false, required: true}, //checkbox to allow mcp chip pins 7 & 15 as inputs
+			interval: {value: 100, required: true, validate: RED.validators.number()},
+			startAllHIGH: {value: false, required: true}, //initialize the chip with all pins HIGH.
+		},
+		label: function () {
+			const _txt = this.chipType + " @ " + this.busNum + ":" + this.addr.replace(/0X/,"") + "H";
+			return _txt;
+		},
+		oneditprepare: function() {
+			debugger;
+			const node=this;
+
+			//look up available I2C buses
+			try {
+				$("#node-config-input-busNum").autocomplete("destroy");
+			} catch(err) { }
+			$("#node-config-lookup-i2cbus").click(function() {//< if search button is clicked...
+				$("#node-config-lookup-i2cbus").addClass('disabled');//< disable search button
+				$.getJSON('mcp-pcf-aio',function(data) {//< get list of i2cBuses
+					$("#node-config-lookup-i2cbus").removeClass('disabled');//< enable search button
+					var buses = data || [];
+					var e = $.Event('keyup');//define a keyup event
+					$("#node-config-input-busNum").autocomplete({//< show dropdown list of i2c buses
+						source:buses,
+						minLength:0,
+						//select: function(event, ui) {
+							//console.log("A selection was made");
+							//console.log ("busNum = "+ui.item.value);
+							//$(this).val(ui.item.value)
+						//},
+						close: function(event, ui) {//< activates when number is typed into box or selection is made from dropdown list
+							$("#node-config-input-busNum").autocomplete("destroy").focus().trigger(e); //< close dropdown list of i2c buses and trigger click event
+						}
+					}).autocomplete("search","");//< create dropdown list of i2c buses
+				});
+			});
+
+			//arrays of possible i2c adresses
+			var addrLo = [
+				{ v: '0X20', t: '0X20'},
+				{ v: '0X21', t: '0X21'},
+				{ v: '0X22', t: '0X22'},
+				{ v: '0X23', t: '0X23'},
+				{ v: '0X24', t: '0X24'},
+				{ v: '0X25', t: '0X25'},
+				{ v: '0X26', t: '0X26'},
+				{ v: '0X27', t: '0X27'}
+			];
+			var addrHi = [
+				{ v: '0X38', t: '0X38'},
+				{ v: '0X39', t: '0X39'},
+				{ v: '0X3A', t: '0X3A'},
+				{ v: '0X3B', t: '0X3B'},
+				{ v: '0X3C', t: '0X3C'},
+				{ v: '0X3D', t: '0X3D'},
+				{ v: '0X3E', t: '0X3E'},
+				{ v: '0X3F', t: '0X3F'}
+			];
+			//Insert address select options based on selected chipType
+			function updateAddrList() {
+				var chType = $('#node-config-input-chipType').val(); //get selected chipType
+				var addrOptions = addrLo; //assume addrLo options array will be used
+				if(chType == "PCF8574A"){ // if PCF8574A, switch to addrHi
+					addrOptions = addrHi;
+				}
+				$('#node-config-input-addr').empty(); //<clear address select options. (If none exist, has no effect.)
+				if($('#node-config-input-busNum').val()==''){return;}//do not create address list unless a bus number is entered
+					
+				//Run through the addressOptions array and add each i2c address to the select addr options list
+				for (var i = 0; i < addrOptions.length; i++) {
+					var value = addrOptions[i].v;
+					var text = addrOptions[i].t;
+					$('#node-config-input-addr').append($("<option></option>").attr("value", value).text(text));
+				}
+				//if mcp chip, show input override checkbox
+				if (chType == "MCP23008" || chType == "MCP23017") {
+						$('#mcpOverride').show();
+						$('#tip-input-pins').show();
+				} else {
+					$('#mcpOverride').hide();
+					$('#tip-input-pins').hide();
+				}
+			}
+
+			//Check boxes to indicate corresponding high(1) chip address pins
+			function updateCheckedPins(){
+				$(".pins").show();
+				var index = $('#node-config-input-addr').prop('selectedIndex'); //get index of selected address
+				const numberOfPins = 3; // 3 address pins
+				const mask = 1;	
+				for (var i=0; i<numberOfPins; i++) {								
+					var bit = index & (mask << i); //bitwise And with left shift
+					switch (i) {
+						case 0:
+							if(bit === 0) {$('#pin-a0').prop('checked',false);} else {$('#pin-a0').prop('checked',true);}
+						break;
+						case 1:
+							if(bit === 0) {$('#pin-a1').prop('checked',false);} else {$('#pin-a1').prop('checked',true);}
+						break;
+						case 2:
+							if(bit === 0) {$('#pin-a2').prop('checked',false);} else {$('#pin-a2').prop('checked',true);}
+						break;
+					}
+				}
+			}
+			
+			//check all mcp-pcf-chip config nodes and disable selection of used i2c address on same bus
+			function i2cBlockUsedAddr() {
+				var chipNodes = [];//< holds list of all mcp-pcf-chip config objects
+				RED.nodes.eachConfig(function(chip) {//< run through all config nodes
+					if (chip.type == "mcp pcf chip") {//<if a mcp-pcf-chip config node...
+						chipNodes.push(chip);//add to chipNodes array
+					}
+				});
+				if(chipNodes.length == 0){return;}//<no chips configured, so no addresses to block
+				var addrFound = false;
+				for (var i=0; i<chipNodes.length;i++) {//run through all the configured chip nodes...
+					var thisChip = chipNodes[i];
+					if (node.busNum != undefined){//<node has a bus number
+						if(thisChip.busNum == $('#node-config-input-busNum').val()) {
+							var thisChipCurrAddr = node.addr;
+							$('#node-config-input-addr option[value='+thisChip.addr+']').prop('disabled',true).css('background-color','#a6bbdf');
+							if(thisChip.addr == node.addr && thisChip.id == node.id) {
+								addrFound = true;	
+								$('#node-config-input-addr option[value='+thisChip.addr+']').prop('disabled',false).css('background-color','transparent');
+								$('#node-config-input-addr option[value='+thisChipCurrAddr+']').attr('selected',true);
+							} else {
+								$('#node-config-input-addr option[value='+thisChip.addr+']').prop('disabled',true).css('background-color','#a6bbdf');
+								if(!addrFound) {
+									$('#node-config-input-addr').find("option:not(:disabled):eq(0)").attr('selected',true);//<set address to first available
+								}
+							}
+						}
+					} else {//new chip being configured
+						if(thisChip.busNum == $('#node-config-input-busNum').val()) {
+							$('#node-config-input-addr option[value='+thisChip.addr+']').prop('disabled',true).css('background-color','#a6bbdf');
+							$('#node-config-input-addr').find("option:not(:disabled):eq(0)").attr('selected',true);//<set address to first available
+						}
+					}
+				}
+			}
+
+			//By default PCF chips start with all pins HIGH, at which point they can be used as either input or output;
+			//MCP chips start with all pins set as inputs.
+			function startAllHighDefault() {
+				var chType = $('#node-config-input-chipType').val();
+				if (chType.startsWith("PCF")) {
+					$("#node-config-input-startAllHIGH").prop('checked',true);
+					$('#tip-input-startAllHigh').show()
+				} else {
+					$("#node-config-input-startAllHIGH").prop('checked',false);
+					$('#tip-input-startAllHigh').hide();
+				}
+			}
+
+			//If chipType changes, update address list; if PCF chip, checkmark startAllHIGH
+			$("#node-config-input-chipType").on('change', function() {
+				console.log("calling updateAddrList due to chipType change");
+				updateAddrList();
+				console.log("calling i2cBlockUseAddr due to chipType change");
+				i2cBlockUsedAddr();
+				startAllHighDefault();
+			});
+
+			//If i2c bus number changes, update i2c address list, i2c addresses in use and checked address pins
+			$("#node-config-input-busNum").on("autocompleteselect keyup",function() {
+				//console.log("A number was entered");
+				console.log("calling updateAddrList due to busNum change");
+				updateAddrList();
+				console.log("calling i2cBlockUseAddr due to busNum change");	
+				i2cBlockUsedAddr();
+				updateCheckedPins();
+				$('#tip-input-addr-used').show();
+			});
+			
+			//If selected address changes, update i2c addresses in use, and checkmarked address pins accordingly
+			$('#node-config-input-addr').on('change', function() {
+				console.log("calling i2cBlokUsedAddr due to address change");
+				i2cBlockUsedAddr();
+				updateCheckedPins();
+				$('#node-config-input-addr').on('focus', function() {$("#tip-input-addr-used").show();});
+			});
+
+			$('#node-config-input-addr').on('blur', function() {$("#tip-input-addr-used").hide();});
+			$('#node-config-input-interval').on('focus', function() {$('#tip-input-readInterval').show();});
+			$('#node-config-input-interval').on('blur', function() {$('#tip-input-readInterval').hide();});
+		}
+	});
+</script>
+
+<script type="text/html" data-template-name="mcp pcf chip">
+	<div class="form-row">
+		<label for="node-config-input-chipType"><i class="fa fa-microchip"></i> Chip Type</label>
+		<select type="text" id="node-config-input-chipType">
+			<option value="MCP23008">MCP23008</option>
+			<option value="MCP23017">MCP23017</option>
+			<option value="PCF8574">PCF8574</option>
+			<option value="PCF8574A">PCF8574A</option>
+			<option value="PCF8575">PCF8575</option>
+		</select>
+	</div>
+	<div class="form-row">
+		<label for="node-config-input-busNum"><i class="fa fa-sitemap"></i> /dev/i2c-?</label>
+		<input type="number" id="node-config-input-busNum" style = "width:25%;">
+		<a id="node-config-lookup-i2cbus" class = "red-ui-button"><i id="node-config-lookup-i2c-icon" class="fa fa-search"></i></a>
+	</div>
+	<div class="form-row">
+		<label for="node-config-input-addr"><i class="fa fa-sitemap"></i> I2C Address</label>
+		<select type="text" id="node-config-input-addr" style="width:25%">
+		</select>
+		<div class="pins" style="padding-left: 22%;" hidden>
+			<label style="display:inline-block; width:11%;"><input style="width:20px; vertical-align:baseline;" type="checkbox"  id="pin-a2" value="4" disabled>A2</label>
+			<label style="display:inline-block; width:11%;"><input style="width:20px; vertical-align:baseline;" type="checkbox"  id="pin-a1" value="2" disabled>A1</label>
+			<label style="display:inline-block; width:11%;"><input style="width:20px; vertical-align:baseline;" type="checkbox"  id="pin-a0" value="1" disabled>A0</label>
+		</div>
+	</div>
+	<div class="form-row" style="padding-left: 22%;" id="mcpOverride" hidden>
+		<label for="node-config-input-mcpInputOverride" style="display:inline-block; width:100%;"><input type="checkbox" id="node-config-input-mcpInputOverride" style="display:inline-block; width:20px;vertical-align:baseline;">Allow Pins 7 & 15 as Input</label>
+	</div>
+	<div class="form-row">
+		<label for="node-config-input-interval"><i class="fa fa-refresh"></i> Read Interval</label>
+		<label for="node-config-input-interval" style="width:70%">
+		<input type="number" id="node-config-input-interval" style = "width:30%;" min=0 >  ms</label>
+	</div>
+	<div class="form-row">
+		<label for="node-config-input-startAllHIGH"><i class="fa fa-level-up"></i> Start All High</label>
+		<input type="checkbox" id="node-config-input-startAllHIGH" style="display:inline-block; width:22px; vertical-align:baseline;" placeholder="Start All Outputs High">
+	</div>
+	<div class="form-tips" id="tip-input-pins" hidden><b>Note:</b> Per Microchip datasheets, MCP23008 pin 7 and MCP23017 pins 7 & 15  cannot be inputs. 
+		Check the box to override this restriction.<br><b>Caution: </b><i>In very rare, exceptional cases this may lead to unintended consequences and possibly freeze the i2c bus, requiring a system restart.</i></div>
+	<div class="form-tips" id="tip-input-addr-used" hidden><b>Tip:</b> Light blue shaded i2c-addresses are in use by other nodes and cannot be selected.</div>	
+	<div class="form-tips" id="tip-input-startAllHigh" hidden><b>Tip:</b> By default PCF chips start with all pins high.</div>
+	<div class="form-tips" id="tip-input-readInterval" hidden><b>Tip:</b> Set Read Interval to 0 to avoid regular polling of inputs, using chip's interrupt output instead. Can combine polling with interrupts if needed.</div>
+</script>
+
+<script type="text/html" data-help-name="mcp pcf chip">
+	<p>Configure a MCP230xx or PCF857x(A) i2c port expander chip</p>
+	<h4>Chip Type</h4>
+	<p>Select the type of i2c port expander chip</p>
+	<h4>/dev/i2c-?</h4>
+	<p>Enter the i2c bus number the chip is connected to. Alternatively click the search icon to retrieve a list of available 
+		i2c buses and select the relevant bus. The search looks for buses in /dev/i2c and is optimized for a Raspberry Pi 
+		(filters out i2c-0, i2c-2, i2c-20, i2c21). If you are using a different platform, just enter the i2c bus number. </p>
+	<h4>I2C Address</h4>
+	<p>Select the hex address the chip is set to. The drop-down list will adjust according to the selected chip type. 
+		Addresses already in use by this node are highlighted in blue and cannot be reselected.
+		The check marks indicate which of the chip's address pins A0-A2	need to be connected to Vcc for the selected address.</p>
+	<h4>Allow Pins 7,15 as inputs</h4>
+	<p><i>MCP chips only:</i> check the box to allow MCP23008 pin 7 or MCP23017 pins 7 and 15 as inputs. (Per rev D of the datasheets
+		these pins cannot be used as inputs. However in most cases there is no issue in doing so. See the 
+		<a href = "https://forum.microchip.com/s/topic/a5C3l000000MS5oEAG/t338048">Microchip forum</a> for more details.) 
+		This option will not show if a PCFchip is selected.</p>
+	<h4>Read Interval</h4>
+	<p>Enter the read interval to poll input ports at. Enter 0 to use interrupts only. When polling, interrupts will
+	    still trigger an immediate read if the hardware is so wired. MCP23017 chips are set to internally connect INT pins,
+		so either INTA or INTB pin can be used.</p>
+	<h4>Start All High</h4>
+	<p>Check to start the chip with all output ports high (default for PCF chips).</p>
+</script>
+
+<!-- INPUT SECTION -->
+<script type="text/javascript">
+	RED.nodes.registerType('mcp pcf in', {
+		category: 'gpio expansion',
+		color: '#a6bbdf',
+		defaults: {
+			name: { value: "" },
+			chip: { type: "mcp pcf chip", required: true},
+			bitNum: { required: true, validate: function(v) {
+				if (v == null||v == undefined||v==""){
+					return false;
+				} else {
+					return true;
+				}
+			}},
+			invert: { value: false },
+			pullUp: { value: true },
+			debounce: { value: 20, validate: RED.validators.number() },
+			onMsg: { value: true },
+			offMsg: { value: true },
+			diagnostics: {value:false}
+		},
+		inputs: 1,
+		outputs: 1,
+		inputLabels: "trigger a read",
+		outputLabels: "input value",
+		icon: "font-awesome/fa-sign-in",
+		align: 'left',
+		label: function () {
+			var pin = (this.bitNum ===undefined)? "?":this.bitNum;
+			var chipID = RED.nodes.node(this.chip);
+			chipID = (chipID === undefined)? "mcp pcf":chipID.label().replace(/ @ i2c-/,"@").replace(/0X/,"");
+			return this.name||"p"+pin+" » "+chipID;
+		},
+		labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        },
+		oneditprepare: function() {
+			//debugger;
+			const node = this;
+
+			//update list of pins if a new chip is configured	
+			function updatePinList() {
+				var chipName;
+				var chipStuff = RED.nodes.node($('#node-input-chip').val());
+				if(chipStuff == undefined) {return;} else {chipName = chipStuff.chipType;}			
+				var maxPins = (chipName == "MCP23017"||chipName == "PCF8575")? 16:8;
+				$('#node-input-bitNum').empty();				
+				for (var i = 0; i < maxPins; i++) {
+					var value = String(i);
+					var text = String(i);
+					$('#node-input-bitNum').append($("<option></option>").attr("value", value).text(text));
+				}
+				if (chipName == "MCP23008" || chipName == "MCP23017") {
+					$('.pullUp').show();
+					if(!chipStuff.mcpInputOverride){	
+						$("#tip-input-pins-mcp").show();//show tip on how to allow input pins 7/15				
+						$('#node-input-bitNum option[value="7"]').prop("disabled",true).css("background-color","#fc0000");
+						if (chipName == "MCP23017") {
+							$('#node-input-bitNum option[value="15"]').prop("disabled",true).css("background-color","#fc0000");
+						}					
+					} else {
+						$("#tip-input-pins-mcp").hide();//input pins 7/15 already allowed: no need to show tip
+						$('#node-input-bitNum option[value="7"]').prop('disabled',false).css("background-color","transparent");
+						if (chipName == "MCP23017") {
+							$('#node-input-bitNum option[value="15"]').prop('disabled',false).css("background-color","transparent");
+						}
+					}
+				} else {
+					$('.pullUp').hide();//<< PCF chips have no internal pullups
+					$("#tip-input-pins-mcp").hide();//PCF chip: tip does not apply
+				}															
+			}
+
+			//check if pin is being used by another node and if so block it from being selected
+			function blockUsedPins() {
+				if (RED.nodes.node($('#node-input-chip').val()) != undefined) {
+					var chipStuff = RED.nodes.node($('#node-input-chip').val());
+					for (var i=0; i<chipStuff.users.length;i++) {
+						if (chipStuff.users[i].id == node.id) {
+							$('#node-input-bitNum option[value='+chipStuff.users[i].bitNum+']').prop('disabled',false);
+						} else {
+							$('#node-input-bitNum option[value='+chipStuff.users[i].bitNum+']').prop('disabled',true).css("background-color","#a6bbdf");
+						}
+					}
+					$('#node-input-bitNum').find("option:not(:disabled):eq(0)").attr('selected',true); //< set pin number to next available
+				}
+			}			
+			
+			$('#node-input-bitNum').on('change', function() {
+				blockUsedPins();
+			});
+
+			$('#node-input-chip').on("change",function(d) {
+				updatePinList();
+				blockUsedPins();
+			});
+
+			$('#node-input-bitNum').on('focus', function() { $("#tip-input-pins-used").show(); });
+			$('#node-input-bitNum').on('blur', function() { $("#tip-input-pins-used").hide(); });
+		}
+	});
+</script>
+
+<script type="text/html" data-template-name="mcp pcf in">
+	<div class="form-row">
+		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+		<input type="text" id="node-input-name" placeholder="Name">
+	</div>
+	<div class="form-row">
+		<label for="node-input-chip"><i class="fa fa-microchip"></i> Chip</label>
+		<input type="text" id="node-input-chip">
+	</div>
+	<div class="form-row">
+		<label for="node-input-bitNum"><i class="fa fa-hashtag"></i> Pin Number</label>
+		<select type="text" id="node-input-bitNum" style = "width:15%;">
+		</select>
+		<label id="override-mcp-inputs" style="width:220px; display:none"><input style="width:20px; vertical-align:baseline;" type="checkbox"  id="input-override" value="1">Allow pins 7 & 15 as inputs</label>
+	</div>
+	<div class="form-row">
+		<label for="node-input-invert"><i class="fa fa-arrows-v"></i> Invert (In+Out)</label>
+		<input type="checkbox" style="display:inline-block; width:22px; vertical-align:baseline;" id="node-input-invert" placeholder="Invert">
+	</div>
+	<div class="form-row pullUp">
+		<label for="node-input-pullUp"><i class="fa fa-level-up"></i> Pull Up</label>
+		<input type="checkbox" style="display:inline-block; width:22px; vertical-align:baseline;" id="node-input-pullUp" placeholder="Pull Up">
+	</div>
+	<div class="form-row">
+		<label for="node-input-debounce"><i class="fa fa-bolt-slash"></i> Debounce</label>
+		<label for="node-input-debounce" style="width:70%">
+		<input type="number" style = "width:30%;" id="node-input-debounce" placeholder="Debounce Time" min=0>  ms</label>
+	</div>
+	<div class="form-row">
+		<label for="node-input-onMsg"><i class="icon-tag"></i> On Msg</label>
+		<input type="checkbox" style="display:inline-block; width:22px; vertical-align:baseline;" id="node-input-onMsg" placeholder="On Msg">
+	</div>
+	<div class="form-row">
+		<label for="node-input-offMsg"><i class="icon-tag"></i> Off Msg</label>
+		<input type="checkbox" style="display:inline-block; width:22px; vertical-align:baseline;" id="node-input-offMsg" placeholder="Off Msg">
+	</div><div class="form-row">
+		<label for="node-input-diagnostics"><i class="icon-tag"></i> Diagnostics</label>
+		<input type="checkbox" style="display:inline-block; width:22px; vertical-align:baseline;" id="node-input-diagnostics" placeholder="Diagnostic Data">
+	</div>
+	<div class="form-tips" id="tip-input-pins-mcp" hidden><b>Tip:</b> To enable MCP23008 pin 7 and/or MCP23017 pins 7 & 15 as inputs, 
+		edit the chip and check the box to allow these inputs</div>
+	<div class="form-tips" id="tip-input-pins-used" hidden><b>Tip:</b> Blue shaded pins are in use by other nodes and cannot be selected</div>
+
+</script>
+
+<script type="text/html" data-help-name="mcp pcf in">
+	<p>MCP230xx / PCF857x(A) input node. Generates a <code>msg.payload</code> equal to either true or false, 
+		depending on the state of the input pin.</p>
+	<h3>Inputs</h3>
+	<dl class="message-properties">
+		<dt>payload <span class="property-type">number | boolean</span></dt>
+		<dd>payload 0 or false will trigger an immediate read</dd>
+	</dl>
+	<h3>Outputs</h3>
+	<dl class="message-properties">
+		<dt>payload <span class="property-type">boolean</span></dt>
+		<dd>payload will be true or false depending on input pin state.</dd>
+		<dt>interrupt <span class="property-type">boolean</span></dt>
+		<dd>true or false depending on if input change was read due to interrupt or polling.</dd>
+	</dl>
+	<p>If an immediate read is triggered by an input message and <code>diagnostics</code> is checked a second message is output:</p>
+	<dl class="message-properties">
+		<dt>payload <span class="property-type">boolean</span></dt>
+		<dd>payload will be true or false depending on input pin state.</dd>
+		<dt>topic <span class="property-type">string</span></dt>
+		<dd>source of interrupt (RPi: gpio/pin#)</dd>
+		<dt>readSuccess <span class="property-type">boolean</span></dt>
+		<dd>identifies success of an immediate read (e.g. triggered by an interrupt)</dd>
+		<dt>readTime <span class="property-type">number</span></dt>
+		<dd>duration of a read in ms</dd>
+		<dt>allStates <span class="property-type">string</span></dt>
+		<dd>state of all ports shown as 0/1 per port</dd>
+		<dt>interrupt <span class="property-type">boolean</span></dt>
+		<dd>true or false depending on if input change was read due to interrupt or polling.</dd>
+	</dl>
+	<h3>Details</h3>
+	<p>This node requires a connection to a configured i2c port expander chip. The node's status reflects the state of the input pin.</p>
+	<p>When a read occurs, either via polling or interrupt, the states of all the chip's pins are read and only 
+		those that have changed from the previous read will be processed. Therefore an input message to trigger an immediate 
+		read (e.g. due to an interrupt) needs to be wired to only one of the input nodes connected to the selected chip.</p>
+	<p>MCP interrupt pins are set to Open Drain, active when 0 (only option for PCF chips). They therefore require a pull-up resistor 
+		to work - either external or select the internal pull-up resistor of a Raspberry Pi's GPIO-in node. MCP23017 interrupts 
+		are set to internally connect for both banks of pins, so either INTA or INTB pin can be used.
+	</p>
+	<p>PCF chips require a pin's state to be 1 before it can be used as an input. If an input's state is actually 0, then following initialization 
+		the actual state will automatically be set accordingly.
+	</p>
+	<h4>Chip</h4>
+	<p>Select a pre-configured chip or add a new chip. Click the pencil icon to configure a new or existing chip.</p>
+	<h4>Pin Number</h4>
+	<p>Select a pin to connect the node to. The number of pins in the list will vary depending on the chip type selected.
+		Blue shaded pins are already in use for the selected chip and cannot be reselected.
+		<br><i>MCP chips only: unless pins 7 (and 15) have been allowed as inputs, these pins will be highlighted in red and 
+		cannot be selected as an input</i></p>
+	<h4>Invert</h4>
+	<p>Check to invert the output msg, such that <code>msg.payload = false</code> signifies a high input state and vice versa. 
+		This will also be reflected in the node's status.</p>
+	<h4>Pull Up</h4>
+	<p><i>MCP chips only:</i> Check to engage the internal pull-up resistors. <br>This option will not show if a PCF chip is 
+		selected as these require external pull-up resistors.</p>
+	<h4>Debounce</h4>
+	<p> Enter the debounce time to allow switches/relays/etc. to reach a steady state. Only works when polling; software debouncing 
+		is not possible when using interrupts.</p>
+	<h4>On Msg</h4>
+	<p>Check to output a message when the input state = 1 (0 if Invert is checked).</p>
+	<h4>Off Msg</h4>
+	<p>Check to output a message when the input state = 0 (1 if Invert is checked).</p>
+	<h4>Diagnostics</h4>
+	<p>Check to output a second message with read diagnostics when the node receives an input message that triggers an immediate read.</p>
+</script>
+
+<!-- OUTPUT SECTION -->
+<script type="text/javascript">
+	RED.nodes.registerType('mcp pcf out', {
+		category: 'gpio expansion',
+		color: '#a6bbcf',
+		defaults: {
+			name: { value: "" },
+			chip: { type: "mcp pcf chip", required:true},
+			bitNum: { required: true, validate: function(v) { //pinNum
+				if (v == null||v == undefined||v==""){
+					return false;
+				} else {
+					return true;
+				}}
+			},
+			invert: { value: false },
+			legacy: { value: false }
+		},
+		inputs: 1,
+		outputs: 0,
+		inputLabels: "set one or more pins",
+		//outputLabels: ["msg of success"],
+		icon: "font-awesome/fa-sign-out",
+		align: 'right',
+		label: function () {
+			var pin = (this.bitNum ===undefined)? "?":this.bitNum;
+			var chipID = RED.nodes.node(this.chip);
+			chipID = (chipID === undefined)? "mcp pcf":chipID.label().replace(/ @ i2c-/,"@").replace(/0X/,"");
+			//return this.name||"p"+pin+" « "+chipID;
+			return this.name||chipID+" » p"+pin;	
+		},
+		labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        },		
+		oneditprepare: function() {
+			//debugger;
+			const node = this;
+
+			//update list of pins if a new chip is configured					
+			function updatePinList() {
+				var chipName;
+				var chipStuff = RED.nodes.node($('#node-input-chip').val());
+				if(chipStuff == undefined) {return;} else {chipName = chipStuff.chipType;}			
+				var maxPins = (chipName == "MCP23017"||chipName == "PCF8575")? 16:8;
+				$('#node-input-bitNum').empty();
+				for (var i = 0; i < maxPins; i++) {
+					var value = String(i);
+					var text = String(i);
+					$('#node-input-bitNum').append($("<option></option>").attr("value", value).text(text));
+				}																
+			}
+
+			//check if pin is being used by another node and if so block it from being selected
+			function blockUsedPins() {
+				var chipName;
+				if (RED.nodes.node($('#node-input-chip').val()) != undefined) {
+					var chipStuff = RED.nodes.node($('#node-input-chip').val());
+					var maxPins = (chipName == "MCP23017"||chipName == "PCF8575")? 16:8;
+					for (var i=0; i<chipStuff.users.length;i++) {
+						if (chipStuff.users[i].id == node.id) {
+							$('#node-input-bitNum option[value='+chipStuff.users[i].bitNum+']').prop('disabled',false);
+						} else {
+							$('#node-input-bitNum option[value='+chipStuff.users[i].bitNum+']').prop("disabled",true).css("background-color","#a6bbcf");
+						}
+					}
+					$('#node-input-bitNum').find("option:not(:disabled):eq(0)").attr('selected',true); //< set pin number to next available
+				}
+			}			
+			
+			$('#node-input-bitNum').on('change', function() {
+				blockUsedPins();
+			});
+
+			$('#node-input-chip').on("change",function() {
+				updatePinList();
+				blockUsedPins();
+			});
+
+			$('#node-input-bitNum').on('focus', function() { $("#tip-input-pins-used").show(); });
+			$('#node-input-bitNum').on('blur', function() { $("#tip-input-pins-used").hide(); });
+		}
+	});
+
+</script>
+
+
+<script type="text/html" data-template-name="mcp pcf out">
+	<div class="form-row">
+		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+		<input type="text" id="node-input-name" placeholder="Name">
+	</div>
+	<div class="form-row">
+		<label for="node-input-chip"><i class="fa fa-microchip"></i> Chip</label>
+		<input type="text" id="node-input-chip">
+	</div>
+	<div class="form-row">
+		<label for="node-input-bitNum"><i class="fa fa-hashtag"></i> Pin Number</label>
+		<select type="text" id="node-input-bitNum" style = width:15%>
+		</select>
+	</div>
+	<div class="form-row">
+		<label for="node-input-invert"><i class="fa fa-arrows-v"></i>  Invert</label>
+		<input type="checkbox" style="display:inline-block; width:22px; vertical-align:baseline;" id="node-input-invert" placeholder="Invert">
+	</div>
+	<div class="form-row">
+		<label for="node-input-legacy"><i class="fa fa-reply"></i>  Legacy</label>
+		<input type="checkbox" style="display:inline-block; width:22px; vertical-align:baseline;" id="node-input-legacy" placeholder="Legacy">
+	</div>
+	<div class="form-tips" id="tip-input-pins-used" hidden>Tip: Blue shaded pins are in use by other nodes and not selectable</div>
+</script>
+
+<script type="text/html" data-help-name="mcp pcf out">
+	<p>MCP230xx / PCF857x(A) output node. Sets the state of an output port.</p>
+	<h3>Inputs</h3>
+	<dl class="message-properties">
+		<dt>payload <span class="property-type">boolean | number</span></dt>
+			<dd>payload = true/false (1/0) will set the state of one or more output ports based on <code>topic</code>.</dd>
+		<dt>topic <span class="property-type">string</span></dt>
+			<dd>topic = "all" will set all output ports.</dd>
+			<dd>topic = "any" will set the state of one or more ports other than the one the node is connected to - requires <code>pin</code>.</dd>
+			<dd>topic equal to anything else will be ignored and will set the state of the port the node is connected to.</dd>
+		<dt>pin <span class="property-type">number | array</span></dt>
+			<dd>Required for <code>topic = "any"</code>: number or array of numbers identifying the output port(s) to set. Must be 0-7 or 0-15 depending on type of port expander.</dd>
+	</dl>
+	<h3>Inputs Legacy</h3>
+	<p>Message properties when legacy option is clicked. Does not use <code>msg.topic</code></p>
+	<dl class="message-properties">
+		<dt>payload <span class="property-type">boolean | number | string</span></dt>
+			<dd>payload = true/false (1/0) will set the state of the output port the node is connected to.</dd>
+			<dd>payload = "all1"/"all0" will set the state of all output ports.</dd>
+			<dd>payload = -1 will set the state of an output port other than the one the one the node is connected to.</dd>
+		<dt>pin <span class="property-type">number</span></dt>
+			<dd>Required for <code>payload = -1</code>: number of the output port to set. Must be 0-7 or 0-15 depending on type of port expander.</dd>
+		<dt>state <span class="property-type">boolean | number</span></dt>
+			<dd>Required for <code>payload = -1</code>: state (true/false or 1/0) to set the output port to.</dd>
+	</dl>
+	<h3>Details</h3>
+	<p>This node requires a connection to a configured i2c port expander chip. The node's status reflects the state of the output pin.</p>
+	<p>When a message is received, the corresponding output pins are set to <code>msg.payload</code> value. Which pins are set depends
+		on <code>msg.topic</code> and may require <code>msg.pin</code>.</p>
+	<p>With <code>msg.topic="all"</code> and/or <code>msg.topic="any"</code> only 1 output node is needed to control all output pins.</p>
+	<h4>Chip</h4>
+	<p>Select a pre-configured chip or add a new chip. Click the pencil icon to configure a new or existing chip.</p>
+	<h4>Pin Number</h4>
+	<p>Select a pin to connect the node to. The number of pins in the list will vary depending on the chip type selected.
+		Blue shaded pins are already in use for the selected chip and cannot be reselected.</p>
+	<h4>Invert</h4>
+	<p>Set the output to the inverse of <code>msg.payload</code>. This will also be reflected in the node's status,
+		such that <code>msg.payload=true</code> will show status Off and vice versa.</p>
+	<p> If this is the only output node on the design panel for the whole chip, then its Invert setting determines the setting for all other outputs 
+		of that same chip when it receives a msg <code>msg.topic="any"</code> and <code>msg.pin</code>=pin#/array of pin#s. If on the other hand this is not the only 
+		output node on the design panel and one or more output nodes are connected to pin#s identified in <code>msg.pin</code>, then the Invert setting 
+		of those other nodes determines how it/they will respond. If <code>msg.pin</code> equals an array of pin#s, then the Invert setting of the output node receiving the msg
+		determines the setting for any outputs without corresponding output nodes on the design panel.</p>
+	<p>Invert has no effect when <code>msg.topic="all"</code> is received: <code>msg.payload=true</code> will set all outputs to 1 and vice versa.</p>
+	<h4>Legacy</h4>
+	<p>Select to allow for message structures used in previous versions that don't use a <code>msg.topic</code> as described above under 
+		<b>Inputs Legacy</b></p>
+
+</script>
