@@ -1,0 +1,692 @@
+[
+    {
+        "id": "162ee3cac3bb4eb9",
+        "type": "tab",
+        "label": "MCP23017",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "df095a1a42cfa4e3",
+        "type": "group",
+        "z": "162ee3cac3bb4eb9",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "5469607749bae0df",
+            "7ef423a58cd9975a",
+            "0a00b5417009a623",
+            "932867b201f2c781",
+            "f46e2fbbb6c41d4b"
+        ],
+        "x": 394,
+        "y": 779,
+        "w": 692,
+        "h": 202
+    },
+    {
+        "id": "7cfc2157439c38e7",
+        "type": "mcp pcf out",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "chip": "d23ef8af5a9f504d",
+        "bitNum": "0",
+        "invert": false,
+        "legacy": true,
+        "x": 470,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "d295916033d05df4",
+        "type": "inject",
+        "z": "162ee3cac3bb4eb9",
+        "name": "activate pin 10",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "pin",
+                "v": "10",
+                "vt": "num"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "any",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 210,
+        "y": 260,
+        "wires": [
+            [
+                "7cfc2157439c38e7"
+            ]
+        ]
+    },
+    {
+        "id": "7c4da0a60f5c8f7d",
+        "type": "inject",
+        "z": "162ee3cac3bb4eb9",
+        "name": "deactivate pin 10",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "pin",
+                "v": "10",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "any",
+        "payload": "false",
+        "payloadType": "bool",
+        "x": 200,
+        "y": 300,
+        "wires": [
+            [
+                "7cfc2157439c38e7"
+            ]
+        ]
+    },
+    {
+        "id": "6a6b4c65eb9956ba",
+        "type": "mcp pcf out",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "chip": "d23ef8af5a9f504d",
+        "bitNum": "1",
+        "invert": false,
+        "x": 470,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "92a90ff23ff5cd6a",
+        "type": "mcp pcf out",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "chip": "d23ef8af5a9f504d",
+        "bitNum": "2",
+        "invert": false,
+        "x": 470,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "0e182c4349d80bc3",
+        "type": "mcp pcf out",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "chip": "d23ef8af5a9f504d",
+        "bitNum": "3",
+        "invert": false,
+        "x": 470,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "9609dc70bc10ab4e",
+        "type": "mcp pcf out",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "chip": "d23ef8af5a9f504d",
+        "bitNum": "4",
+        "invert": false,
+        "x": 470,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "5dea03412f29797a",
+        "type": "mcp pcf out",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "chip": "d23ef8af5a9f504d",
+        "bitNum": "5",
+        "invert": false,
+        "x": 470,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "eb8ec8ae3920a440",
+        "type": "mcp pcf out",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "chip": "d23ef8af5a9f504d",
+        "bitNum": "6",
+        "invert": false,
+        "x": 470,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "154d2db873aca78d",
+        "type": "mcp pcf out",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "chip": "d23ef8af5a9f504d",
+        "bitNum": "7",
+        "invert": false,
+        "x": 470,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "413291e8cff68a39",
+        "type": "mcp pcf out",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "chip": "d23ef8af5a9f504d",
+        "bitNum": "8",
+        "invert": false,
+        "legacy": true,
+        "x": 970,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "5a00bca7ed08eac3",
+        "type": "mcp pcf out",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "chip": "d23ef8af5a9f504d",
+        "bitNum": "12",
+        "invert": false,
+        "legacy": true,
+        "x": 970,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "81b15bcb5b84d50f",
+        "type": "mcp pcf out",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "chip": "d23ef8af5a9f504d",
+        "bitNum": "13",
+        "invert": false,
+        "x": 970,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "ec0c8b63e9f58040",
+        "type": "mcp pcf out",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "chip": "d23ef8af5a9f504d",
+        "bitNum": "14",
+        "invert": false,
+        "x": 970,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "56de88691916a07d",
+        "type": "mcp pcf in",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "chip": "d23ef8af5a9f504d",
+        "bitNum": "15",
+        "invert": true,
+        "pullUp": true,
+        "debounce": "1000",
+        "onMsg": true,
+        "offMsg": true,
+        "diagnostics": false,
+        "x": 970,
+        "y": 660,
+        "wires": [
+            [
+                "cbb491f18611f4a3",
+                "06fbd41d6b9d2c6a"
+            ]
+        ]
+    },
+    {
+        "id": "faf96a18c31cbc29",
+        "type": "rpi-gpio in",
+        "z": "162ee3cac3bb4eb9",
+        "name": "IRQ MCP23017",
+        "pin": "19",
+        "intype": "up",
+        "debounce": "0",
+        "read": false,
+        "bcm": true,
+        "x": 740,
+        "y": 680,
+        "wires": [
+            [
+                "7a84735924413d22",
+                "56de88691916a07d"
+            ]
+        ]
+    },
+    {
+        "id": "cbb491f18611f4a3",
+        "type": "debug",
+        "z": "162ee3cac3bb4eb9",
+        "name": "on/off msg",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1190,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "7a84735924413d22",
+        "type": "debug",
+        "z": "162ee3cac3bb4eb9",
+        "name": "IRQ out",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 920,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "5b9c2e85169ab178",
+        "type": "inject",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "all",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 750,
+        "y": 240,
+        "wires": [
+            [
+                "413291e8cff68a39"
+            ]
+        ]
+    },
+    {
+        "id": "8624735e9941d7df",
+        "type": "inject",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "all",
+        "payload": "false",
+        "payloadType": "bool",
+        "x": 750,
+        "y": 280,
+        "wires": [
+            [
+                "413291e8cff68a39"
+            ]
+        ]
+    },
+    {
+        "id": "73ab369e6af728f5",
+        "type": "inject",
+        "z": "162ee3cac3bb4eb9",
+        "name": "Legacy: all0",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "all0",
+        "payloadType": "str",
+        "x": 730,
+        "y": 180,
+        "wires": [
+            [
+                "413291e8cff68a39"
+            ]
+        ]
+    },
+    {
+        "id": "c33ee8bd77bb169a",
+        "type": "inject",
+        "z": "162ee3cac3bb4eb9",
+        "name": "Legacy: all1",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "all1",
+        "payloadType": "str",
+        "x": 730,
+        "y": 140,
+        "wires": [
+            [
+                "413291e8cff68a39"
+            ]
+        ]
+    },
+    {
+        "id": "276681bea9e5a330",
+        "type": "mcp pcf out",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "chip": "d23ef8af5a9f504d",
+        "bitNum": "9",
+        "invert": false,
+        "legacy": false,
+        "x": 970,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "c9dd06e1f905e500",
+        "type": "mcp pcf out",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "chip": "d23ef8af5a9f504d",
+        "bitNum": "10",
+        "invert": false,
+        "legacy": false,
+        "x": 970,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "d0347275cd1b13d0",
+        "type": "mcp pcf out",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "chip": "d23ef8af5a9f504d",
+        "bitNum": "11",
+        "invert": true,
+        "legacy": false,
+        "x": 970,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "5469607749bae0df",
+        "type": "inject",
+        "z": "162ee3cac3bb4eb9",
+        "g": "df095a1a42cfa4e3",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 490,
+        "y": 900,
+        "wires": [
+            [
+                "0a00b5417009a623"
+            ]
+        ]
+    },
+    {
+        "id": "7ef423a58cd9975a",
+        "type": "inject",
+        "z": "162ee3cac3bb4eb9",
+        "g": "df095a1a42cfa4e3",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "false",
+        "payloadType": "bool",
+        "x": 490,
+        "y": 940,
+        "wires": [
+            [
+                "0a00b5417009a623"
+            ]
+        ]
+    },
+    {
+        "id": "0a00b5417009a623",
+        "type": "mcp pcf out",
+        "z": "162ee3cac3bb4eb9",
+        "g": "df095a1a42cfa4e3",
+        "name": "",
+        "chip": "2181582d6682843b",
+        "bitNum": "6",
+        "invert": false,
+        "x": 710,
+        "y": 920,
+        "wires": []
+    },
+    {
+        "id": "932867b201f2c781",
+        "type": "comment",
+        "z": "162ee3cac3bb4eb9",
+        "g": "df095a1a42cfa4e3",
+        "name": "to MCP23017-pin15 input",
+        "info": "",
+        "x": 950,
+        "y": 920,
+        "wires": []
+    },
+    {
+        "id": "06fbd41d6b9d2c6a",
+        "type": "delay",
+        "z": "162ee3cac3bb4eb9",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "5",
+        "timeoutUnits": "milliseconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 1190,
+        "y": 640,
+        "wires": [
+            [
+                "d0347275cd1b13d0"
+            ]
+        ]
+    },
+    {
+        "id": "f46e2fbbb6c41d4b",
+        "type": "comment",
+        "z": "162ee3cac3bb4eb9",
+        "g": "df095a1a42cfa4e3",
+        "name": "Input switch instructions",
+        "info": "Replace with a scitch/push button if you desire:\n - Contact closure connects pin 15 input to ground.\n - Open contact disconnects pin 15\n\nConnect interrupt pin (INTA or INTB) to a GPIO port set as an input.\nIf available, activate the GPIO port's internal pull-up resistor,\nor instead use an external 100K pull-up resistor",
+        "x": 540,
+        "y": 820,
+        "wires": []
+    },
+    {
+        "id": "8011736bcb6fb14a",
+        "type": "inject",
+        "z": "162ee3cac3bb4eb9",
+        "name": "Legacy: activate pin 12",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "pin",
+                "v": "12",
+                "vt": "num"
+            },
+            {
+                "p": "state",
+                "v": "true",
+                "vt": "bool"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "-1",
+        "payloadType": "num",
+        "x": 180,
+        "y": 160,
+        "wires": [
+            [
+                "7cfc2157439c38e7"
+            ]
+        ]
+    },
+    {
+        "id": "202063cc3a99e552",
+        "type": "inject",
+        "z": "162ee3cac3bb4eb9",
+        "name": "Legacy: deactivate pin 12",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "pin",
+                "v": "12",
+                "vt": "num"
+            },
+            {
+                "p": "state",
+                "v": "false",
+                "vt": "bool"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "-1",
+        "payloadType": "num",
+        "x": 170,
+        "y": 200,
+        "wires": [
+            [
+                "7cfc2157439c38e7"
+            ]
+        ]
+    },
+    {
+        "id": "43687d16161e50d2",
+        "type": "comment",
+        "z": "162ee3cac3bb4eb9",
+        "name": "General Instructions",
+        "info": "This example illustrates the use of both legacy and new chip control commands to \nturn on/off a different pin and to turn all pins on/off.\n\nPin 15 is used as an input port and reads its input when triggered by an\ninterrupt. The output of this `mcp pcf in` node connects to pin 11 following\na 5ms delay.\n\nOnly `mcp pcf out` nodes P0, P8 and P11 and `mcp pcf in` node P15 are required in this example.\nThe others are for illustrative purposes only.\n\n## Important:\n**Before deploying change the i2c bus and address\nto the actual bus and address your MCP23017 is \nconnected to.**",
+        "x": 190,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "d23ef8af5a9f504d",
+        "type": "mcp pcf chip",
+        "chipType": "MCP23017",
+        "busNum": "3",
+        "addr": "0X20",
+        "mcpInputOverride": false,
+        "interval": "0",
+        "startAllHIGH": false
+    },
+    {
+        "id": "2181582d6682843b",
+        "type": "mcp pcf chip",
+        "chipType": "MCP23008",
+        "busNum": "1",
+        "addr": "0X20",
+        "mcpInputOverride": false,
+        "interval": "0",
+        "startAllHIGH": false
+    }
+]
