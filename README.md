@@ -1,4 +1,4 @@
-[![Node version](https://img.shields.io/node/v/[@joe-ab1do/mcp-pcf-aio].svg?style=flat)](https://nodejs.org/download/)
+[![Node version](https://img.shields.io/node/v/@joe-ab1do/mcp-pcf-aio.svg?style=flat)](https://nodejs.org/download/)
 
 @joe-ab1do/mcp-pcf-aio
 ========================
