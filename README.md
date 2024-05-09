@@ -1,3 +1,4 @@
+[![npm version](https://badge.fury.io/js/@joe-ab1do%2Fmcp-pcf-aio.svg)](https://badge.fury.io/js/@joe-ab1do%2Fmcp-pcf-aio)
 [![Node version](https://img.shields.io/node/v/@joe-ab1do/mcp-pcf-aio.svg?style=flat)](https://nodejs.org/download/)
 
 @joe-ab1do/mcp-pcf-aio
