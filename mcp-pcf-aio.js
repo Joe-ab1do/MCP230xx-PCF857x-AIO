@@ -19,8 +19,8 @@ module.exports = function(RED) {
         "Writing byte",				// processState 2
         "Closing i2c bus"];			// processState 3
 
-    const log2console = true; // enable to show detailed logs in:  node-red-log
-    const timerLog   = false; // !! WARNING !!   << if true, will fill up the log with ALL read events (up to 50x3 msg. per sec !! if read interval is 20ms)
+    const log2console = false; // enable to show detailed logs in:  node-red-log
+    //const timerLog   = false; // !! WARNING !!   << if true, will fill up the log with ALL read events (up to 50x3 msg. per sec !! if read interval is 20ms)
     
     // *** THESE REGISTER ADDRESSES ARE ONLY RELEVANT FOR MCP230xx CHIPS; PCF857x(A) CHIPS DO NOT HAVE REGISTERS TO SET ***/
     // IOCON.BANK = 0 << !!! Non-Bank mode: Using this is NOT USED HERE..
@@ -136,6 +136,7 @@ module.exports = function(RED) {
         this.isInputs       = 0x0000;	// keeps track of input ports (saved in hexadecimal form)
         this.pullUps        = 0x0000;   // keeps track of pullUps (not relevant for PCF chips)
         this.startAllHIGH   = n.startAllHIGH; // Some relay boards use negative logic (HIGH = OFF) << ab1do: only relevant for MCP chips: PCF chips default to HIGH
+        this.myLogging        = n.myLogging; //false by default; if true log is written to node-red-log
         this.ids            = new Array(this.maxBits).fill(null); //depending on chiptype, 8 or 16 element null array
         this.globalState    = 0;  // 0=uninitialized  1=working: on/off=see:ids    2=error
         this.errorCount		= 0;
@@ -149,6 +150,7 @@ module.exports = function(RED) {
         this.chipTimer      = null;
         this.timerIsRunning = false;
 
+        log2console = this.myLog;
         if (log2console) console.log("  "+this.chipType+" chip initialization OK. BusNumber=" + this.busNum + " Address=0X" + this.addr.toString(16) + "  id:" + this.id+"  startAllHigh = "+this.startAllHIGH); 
         
         /*   ### INITIALIZATION of the Chip ###   */
