@@ -9,7 +9,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/Joe-ab1do/mcp230xx-pcf857x-aio"
-  },
+  },  
   "license": "MIT",
   "keywords": [
     "node-red",
