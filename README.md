@@ -62,11 +62,16 @@ In this second, more elaborate example a `mcp pcf out` node is set to pin6 of a 
 
 
 ## Credit
-I am idebted to László Szakmári who expanded Mike Wilson's original code and wrote the first few versions of mcp-pcf-aio. Thanks to our many
-fruitful discussions I was able to greatly expand and streamline his code.</br></br>
-Thanks to Mike Wilson for the original v0.1 node: [MCP23017chip](https://flows.nodered.org/node/node-red-contrib-mcp23017chip)
+I am idebted to László Szakmári who expanded Mike Wilson's original code ([MCP23017chip](https://flows.nodered.org/node/node-red-contrib-mcp23017chip)) and wrote the first few versions of mcp-pcf-aio. Thanks to our many
+fruitful discussions I was able to greatly expand and streamline his code.
 
 ## Change Logs
+### Change Log 2024-11-20 (YMD) Version: 3.3.0
+by Joe de Groot (ab1do@optonline.net)
+- Added option to not log changes. By default `Enable Log` is false and no log of changes to the port expander in/outputs will be logged. However the log will show that the configuration node has been successfully created.
+- If a configuration node's `Enable Log` option is checked, then only changes to nodes related to that configuration node will be logged. Changes to nodes related to other configuration node will not be logged
+- If all is working as desired, then `Enable Log` should be unchecked. The log is designed to be used for debugging purposes only.
+- The log can be found by typing node-red-log in the terminal. Enter ^C to exit the log
 ### Change Log 2024-05-06 (YMD) Version: 3.2.2
 by Joe de Groot (ab1do@optonline.net)
 - Shortened default label of configuration node to show i2c bus and address

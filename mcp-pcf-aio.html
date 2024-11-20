@@ -23,7 +23,7 @@
 			mcpInputOverride: {value:false, required: true}, //checkbox to allow mcp chip pins 7 & 15 as inputs
 			interval: {value: 100, required: true, validate: RED.validators.number()},
 			startAllHIGH: {value: false, required: true}, //initialize the chip with all pins HIGH.
-			myLogging: {value: false, required: true} // by default no logging. If true logging in node-red-log
+			logging: {value: false, required: true} // by default no logging. If true logging in node-red-log
 		},
 		label: function () {
 			const _txt = this.chipType + " @ " + this.busNum + ":" + this.addr.replace(/0X/,"") + "H";
@@ -250,15 +250,15 @@
 		<input type="checkbox" id="node-config-input-startAllHIGH" style="display:inline-block; width:22px; vertical-align:baseline;" placeholder="Start All Outputs High">
 	</div>
 	<div class="form-row">
-		<label for="node-config-input-myLogging"><i class="fa fa-bars"></i> Enable Logging</label>
-		<input type="checkbox" id="node-config-input-myLogging" style="display:inline-block; width:22px; vertical-align:baseline;" placeholder="Enable Logging">
+		<label for="node-config-input-logging"><i class="fa fa-bars"></i> Enable Log</label>
+		<input type="checkbox" id="node-config-input-logging" style="display:inline-block; width:22px; vertical-align:baseline;" placeholder="Enable Logging">
 	</div>
 	<div class="form-tips" id="tip-input-pins" hidden><b>Note:</b> Per Microchip datasheets, MCP23008 pin 7 and MCP23017 pins 7 & 15  cannot be inputs. 
 		Check the box to override this restriction.<br><b>Caution: </b><i>In very rare, exceptional cases this may lead to unintended consequences and possibly freeze the i2c bus, requiring a system restart.</i></div>
 	<div class="form-tips" id="tip-input-addr-used" hidden><b>Tip:</b> Light blue shaded i2c-addresses are in use by other nodes and cannot be selected.</div>	
 	<div class="form-tips" id="tip-input-startAllHigh" hidden><b>Tip:</b> By default PCF chips start with all pins high.</div>
 	<div class="form-tips" id="tip-input-readInterval" hidden><b>Tip:</b> Set Read Interval to 0 to avoid regular polling of inputs, using chip's interrupt output instead. Can combine polling with interrupts if needed.</div>
-	<div class="form-tips" id="tip-input-myLogging"><b>Tip:</b> By default logging is disabled. If logging is preferred then check to enable. The log of events can ba found in node-red-log.</div>
+	<div class="form-tips" id="tip-input-myLogging"><b>Note:</b> By default logging is disabled. Check to enable logging to node-red-log.</div>
 </script>
 
 <script type="text/html" data-help-name="mcp pcf chip">
@@ -284,9 +284,10 @@
 		so either INTA or INTB pin can be used.</p>
 	<h4>Start All High</h4>
 	<p>Check to start the chip with all output ports high (default for PCF chips).</p>
-	<h4>Enable Logging</h4>
+	<h4>Enable Log</h4>
 	<p> Check to enable logging to node-red-log. If checked an expansive log of events will be created, which can be helpful for debugging, 
-		but may slow down the node's responsiveness or result in an error because the log file is too big</p>
+		but may slow down the node's responsiveness. Logging is per configuration node and will only show changes to nodes related to that 
+		configuration node</p>
 </script>
 
 <!-- INPUT SECTION -->

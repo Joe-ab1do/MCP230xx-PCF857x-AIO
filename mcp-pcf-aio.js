@@ -19,8 +19,8 @@ module.exports = function(RED) {
         "Writing byte",				// processState 2
         "Closing i2c bus"];			// processState 3
 
-    const log2console = false; // enable to show detailed logs in:  node-red-log
-    //const timerLog   = false; // !! WARNING !!   << if true, will fill up the log with ALL read events (up to 50x3 msg. per sec !! if read interval is 20ms)
+    var log2console = false; // enabled on configuration node to show detailed logsfor that node in:  node-red-log
+    const timerLog   = false; // !! WARNING !!   << if true, will fill up the log with ALL read events (up to 50x3 msg. per sec !! if read interval is 20ms)
     
     // *** THESE REGISTER ADDRESSES ARE ONLY RELEVANT FOR MCP230xx CHIPS; PCF857x(A) CHIPS DO NOT HAVE REGISTERS TO SET ***/
     // IOCON.BANK = 0 << !!! Non-Bank mode: Using this is NOT USED HERE..
@@ -136,7 +136,7 @@ module.exports = function(RED) {
         this.isInputs       = 0x0000;	// keeps track of input ports (saved in hexadecimal form)
         this.pullUps        = 0x0000;   // keeps track of pullUps (not relevant for PCF chips)
         this.startAllHIGH   = n.startAllHIGH; // Some relay boards use negative logic (HIGH = OFF) << ab1do: only relevant for MCP chips: PCF chips default to HIGH
-        this.myLogging        = n.myLogging; //false by default; if true log is written to node-red-log
+        this.logging        = n.logging; //false by default; if true log is written to node-red-log
         this.ids            = new Array(this.maxBits).fill(null); //depending on chiptype, 8 or 16 element null array
         this.globalState    = 0;  // 0=uninitialized  1=working: on/off=see:ids    2=error
         this.errorCount		= 0;
@@ -150,9 +150,9 @@ module.exports = function(RED) {
         this.chipTimer      = null;
         this.timerIsRunning = false;
 
-        log2console = this.myLog;
+        log2console = true;
         if (log2console) console.log("  "+this.chipType+" chip initialization OK. BusNumber=" + this.busNum + " Address=0X" + this.addr.toString(16) + "  id:" + this.id+"  startAllHigh = "+this.startAllHIGH); 
-        
+        log2console = mainChipNode.logging;
         /*   ### INITIALIZATION of the Chip ###   */
         /*   ##################################   */ 
         this.initializeBit = function(_bitNum, _isInput, _pullUp, _callerNode){ //< Only _bitNum and _callerNode relevant for PCF chips
@@ -350,7 +350,7 @@ module.exports = function(RED) {
             if (log2console) console.log("    "+this.chipType+" startChipTimer = " + _newInterval +" ms");
             
             if ((_newInterval == undefined) || (_newInterval == 0)) {
-                console.log("    "+this.chipType+"  Timer interval is UNDEFINED or 0 ! Timer will not be started, old may be cleared. Exiting Timer.");
+                if (log2console) console.log("    "+this.chipType+"  Timer interval is UNDEFINED or 0 ! Timer will not be started, old may be cleared. Exiting Timer.");
                 if (mainChipNode.chipTimer) clearInterval(mainChipNode.chipTimer);
                 return null;
             }
@@ -536,6 +536,7 @@ module.exports = function(RED) {
             showStatus(node, true, 0);
             return null;
         }
+        log2console = _parCh.logging;
         if(log2console) console.log(">>>> DEBOUNCE = "+this.debounce+" ms and _parentChipNode.interval = "+_parentChipNode.interval+" ms");
         
         if (log2console) console.log("---");		
@@ -668,9 +669,11 @@ module.exports = function(RED) {
             return null;
         }
         node.startAllHIGH = _parentChipNode.startAllHIGH;
-
-        if (log2console) console.log("---");
-        console.log(">>> Initializing  "+_parentChipNode.chipType+" Output node >>  invert=" + node.invert + " pinNum=" + node.bitNum + "  ID=" + node.id);
+        log2console = _parentChipNode.logging;
+        if (log2console) {
+            console.log("---");
+            console.log(">>> Initializing  "+_parentChipNode.chipType+" Output node >>  invert=" + node.invert + " pinNum=" + node.bitNum + "  ID=" + node.id);
+        }
 
         this.initOK  = _parentChipNode.initializeBit(node.bitNum, false, false, node);
         showStatus(node, this.lastState, _parentChipNode.globalState); // shows uninitialized (yellow) or error (red)
@@ -688,6 +691,7 @@ module.exports = function(RED) {
             const _addr = _parCh.addr;
             if ( ! _addr)		{ _callerNode.error( _chipType + "setOutput >> parentChip.addr=null !"); return false; }
             const _chipType = _parCh.chipType;
+            log2console = _parCh.logging;
 
             try {
                 let ip8  = -1;
@@ -916,7 +920,7 @@ module.exports = function(RED) {
                 if (msg.payload == -1 || msg.payload == "all1" || msg.payload == "all0") return null; //stop legacy messages from setting _pinOn to false in non-legacy mode
                 let _pinOn = (msg.payload === true) || (msg.payload === 1); //safe boolean conversion
                 let _invPinOn = node.invert ? !_pinOn : _pinOn;
-                if (log2console) console.log("PinOn = "+_pinOn+"; invPinOn = "+_invPinOn); 
+                //if (log2console) console.log("PinOn = "+_pinOn+"; invPinOn = "+_invPinOn); 
                 if (node.setOutput(node.bitNum, _invPinOn, node)) {//sets output pin and returns true if all OK
                     node.lastState = _invPinOn;
                 }
