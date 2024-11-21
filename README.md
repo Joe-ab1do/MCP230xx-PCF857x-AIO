@@ -68,7 +68,7 @@ fruitful discussions I was able to greatly expand and streamline his code.
 ## Change Logs
 ### Change Log 2024-11-21 (YMD) Version: 3.3.1
 by Joe de Groot (ab1do@optonline.net)
-BugFix: stpopped exessive logging when polling
+BugFix: stopped exessive logging when polling.
 ### Change Log 2024-11-20 (YMD) Version: 3.3.0
 by Joe de Groot (ab1do@optonline.net)
 - Added option to not log changes. By default `Enable Log` is false and no log of changes to the port expander in/outputs will be logged. However the log will show that the configuration node has been successfully created.
