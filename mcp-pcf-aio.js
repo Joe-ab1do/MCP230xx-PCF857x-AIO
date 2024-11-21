@@ -20,7 +20,7 @@ module.exports = function(RED) {
         "Closing i2c bus"];			// processState 3
 
     var log2console = false; // enabled on configuration node to show detailed logsfor that node in:  node-red-log
-    const timerLog   = false; // !! WARNING !!   << if true, will fill up the log with ALL read events (up to 50x3 msg. per sec !! if read interval is 20ms)
+    const timerLog  = false; // !! WARNING !!   << if true, will fill up the log with ALL read events (up to 50x3 msg. per sec !! if read interval is 20ms)
     
     // *** THESE REGISTER ADDRESSES ARE ONLY RELEVANT FOR MCP230xx CHIPS; PCF857x(A) CHIPS DO NOT HAVE REGISTERS TO SET ***/
     // IOCON.BANK = 0 << !!! Non-Bank mode: Using this is NOT USED HERE..
@@ -409,7 +409,7 @@ module.exports = function(RED) {
                         ipA = _aBus.readByteSync(_addr, BNK1_GPIO_A);
                         ipB = _aBus.readByteSync(_addr, BNK1_GPIO_B);
                         ipAll = ipA + (ipB << 8);
-                        console.log("MCP23017 Read success ipA00=" + ipA.toString(2).padStart(8,"0") + "  ipB00=" + ipB.toString(2).padStart(8,"0") + "   ipALL =" + ipAll.toString(2).padStart(16,"0"));
+                        //if (log2console) console.log("MCP23017 Read success ipA00=" + ipA.toString(2).padStart(8,"0") + "  ipB00=" + ipB.toString(2).padStart(8,"0") + "   ipALL =" + ipAll.toString(2).padStart(16,"0"));
                         if (timerLog && log2console) console.log("MCP23017 Read success ipA00=" + ipA.toString(2).padStart(8,"0") + "  ipB00=" + ipB.toString(2).padStart(8,"0") + "   ipALL =" + ipAll.toString(2).padStart(16,"0"));
                     break;
                     case ("MCP23008"):
