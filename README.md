@@ -69,7 +69,7 @@ I am idebted to László Szakmári who expanded Mike Wilson's original code ([MC
 fruitful discussions I was able to greatly expand and streamline his code.
 
 ## Change Logs
-### Change Log 2025-01-10 (YMD) Version: 3.3.2
+### Change Log 2025-05-15 (YMD) Version: 3.3.2
 by Joe de Groot (ab1do@optonline.net)
 - BugFix: Added prerequisite to README.md that command `i2cdetect` must be available prior to installation.
 ### Change Log 2024-11-21 (YMD) Version: 3.3.1
