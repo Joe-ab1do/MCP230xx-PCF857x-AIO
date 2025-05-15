@@ -7,6 +7,9 @@
 
 <a href="http://nodered.org" target="noderedinfo">Node-RED</a> nodes to configure and control MCP23008, MCP23017, PCF8574(A) and PCF8575 i2c port expanders.
 
+## Prerequisite to installation
+This node uses the `i2cdetect` command. Normally this is included in a Linux distro. However, in cases where it is not, installation of this node will fail. Prior to installation, run `i2cdetect -l`, which should bring up a list of your i2c busses. If instead you get  `i2cdetect command not found`, then run `sudo apt install i2c-tools` and test again.  
+
 ## Install
 
 To install use the  `Menu - Manage palette - Install`  option and search for @joe-ab1do/mcp-pcf-aio, or run the following command in your Node-RED user directory, typically `~/.node-red`
@@ -66,9 +69,12 @@ I am idebted to László Szakmári who expanded Mike Wilson's original code ([MC
 fruitful discussions I was able to greatly expand and streamline his code.
 
 ## Change Logs
+### Change Log 2025-01-10 (YMD) Version: 3.3.2
+by Joe de Groot (ab1do@optonline.net)
+- BugFix: Added prerequisite to README.md that command `i2cdetect` must be available prior to installation.
 ### Change Log 2024-11-21 (YMD) Version: 3.3.1
 by Joe de Groot (ab1do@optonline.net)
-BugFix: stopped exessive logging when polling.
+- BugFix: stopped exessive logging when polling.
 ### Change Log 2024-11-20 (YMD) Version: 3.3.0
 by Joe de Groot (ab1do@optonline.net)
 - Added option to not log changes. By default `Enable Log` is false and no log of changes to the port expander in/outputs will be logged. However the log will show that the configuration node has been successfully created.
