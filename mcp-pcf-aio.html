@@ -183,6 +183,14 @@
 				console.log("calling i2cBlockUseAddr due to chipType change");
 				i2cBlockUsedAddr();
 				startAllHighDefault();
+			//recall previously set values
+			$('#node-config-input-chipType').val(node.chipType);
+			$('#node-config-input-busNum').val(node.busNum);
+			$('#node-config-input-addr').val(node.addr);
+			$('#node-config-input-interval').val(node.interval);
+			$('#node-config-input-logging').prop('checked', node.logging);
+			$('#node-config-input-startAllHIGH').prop('checked', node.startAllHIGH);
+			$('#node-config-input-mcpInputOverride').prop('checked', node.mcpInputOverride);
 			});
 
 			//If i2c bus number changes, update i2c address list, i2c addresses in use and checked address pins
@@ -280,7 +288,7 @@
 		This option will not show if a PCFchip is selected.</p>
 	<h4>Read Interval</h4>
 	<p>Enter the read interval to poll input ports at. Enter 0 to use interrupts only. When polling, interrupts will
-	    still trigger an immediate read if the hardware is so wired. MCP23017 chips are set to internally connect INT pins,
+		still trigger an immediate read if the hardware is so wired. MCP23017 chips are set to internally connect INT pins,
 		so either INTA or INTB pin can be used.</p>
 	<h4>Start All High</h4>
 	<p>Check to start the chip with all output ports high (default for PCF chips).</p>
@@ -375,7 +383,13 @@
 							$('#node-input-bitNum option[value='+chipStuff.users[i].bitNum+']').prop('disabled',true).css("background-color","#a6bbdf");
 						}
 					}
-					$('#node-input-bitNum').find("option:not(:disabled):eq(0)").attr('selected',true); //< set pin number to next available
+					//show previous pin if set, or next available if not
+					if (node.bitNum !== undefined) {
+						$('#node-input-bitNum option[value="' + node.bitNum + '"]').prop("disabled", false).attr('selected', true).css("background-color", ""); //< set pin number to current pin
+					} else {
+						$('#node-input-bitNum').find("option:not(:disabled):eq(0)").attr('selected',true); //< set pin number to next available
+					}
+
 				}
 			}			
 			
@@ -570,7 +584,13 @@
 							$('#node-input-bitNum option[value='+chipStuff.users[i].bitNum+']').prop("disabled",true).css("background-color","#a6bbcf");
 						}
 					}
-					$('#node-input-bitNum').find("option:not(:disabled):eq(0)").attr('selected',true); //< set pin number to next available
+					//show previous pin if set, or next available if not
+					if (node.bitNum !== undefined) {
+						$('#node-input-bitNum option[value="' + node.bitNum + '"]').prop("disabled", false).attr('selected', true).css("background-color", ""); //< set pin number to current pin
+					} else {
+						//$('#node-input-bitNum option:not(:disabled):eq(0)').prop('selected', true); //< set pin number to next available
+						$('#node-input-bitNum').find("option:not(:disabled):eq(0)").attr('selected',true); //< set pin number to next available
+					}
 				}
 			}			
 			
