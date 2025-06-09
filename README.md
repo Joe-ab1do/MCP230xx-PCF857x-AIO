@@ -69,6 +69,10 @@ I am idebted to László Szakmári who expanded Mike Wilson's original code ([MC
 fruitful discussions I was able to greatly expand and streamline his code.
 
 ## Change Logs
+### Change Log 2025-06-09 (YMD) Version: 3.3.3
+by Joe de Groot (ab1do@optonline.net)
+- BugFix: Configuration node now recalls previously set values when edited. This avoids the resetting of its associated input/output nodes.
+- Thanks to @tek79 for the work done to correct this issue
 ### Change Log 2025-05-15 (YMD) Version: 3.3.2
 by Joe de Groot (ab1do@optonline.net)
 - BugFix: Added prerequisite to README.md that command `i2cdetect` must be available prior to installation.

@@ -1,6 +1,6 @@
 {
   "name": "@joe-ab1do/mcp-pcf-aio",
-  "version": "3.3.2",
+  "version": "3.3.3",
   "description": "Node-Red nodes for i2c port expanders MCP23008, MCP23017, PCF8574(A) & PCF8575",
   "bundleDependencies": [],
   "dependencies": {
