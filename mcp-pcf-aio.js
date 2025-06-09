@@ -261,8 +261,9 @@ module.exports = function(RED) {
                         if (_isInput)	 {_parCh.isInputs = _parCh.isInputs |  (1 << _bitNum);}// input: e.g. if _bitNum = 5, shift 1 left 5, then bitwise or with whatever _parCh.isInputs is makes pin 5 an input
                         else			 {_parCh.isInputs = _parCh.isInputs & ~(1 << _bitNum);}//output: e.g. if _bitNum = 5, shift 1 left 5, then bitwise and (not bit5) with whatever _parCh.isInputs is makes pin 5 an output
 
-                        if (_bitNum < 8) {aBus.writeByteSync(_parCh.addr, BNK1_IODIR_A,  _parCh.isInputs       & 0xFF);} //update in/out mode A
-                        else			 {aBus.writeByteSync(_parCh.addr, BNK1_IODIR_B, (_parCh.isInputs >> 8) & 0xFF);} //update in/out mode B
+                        // set both banks
+                        aBus.writeByteSync(_parCh.addr, BNK1_IODIR_A,  _parCh.isInputs       & 0xFF); //update in/out mode A
+                        aBus.writeByteSync(_parCh.addr, BNK1_IODIR_B, (_parCh.isInputs >> 8) & 0xFF); //update in/out mode B
                         
                         if (_isInput) {
                             if (_pullUp)  { _parCh.pullUps  = _parCh.pullUps  | (1 << _bitNum) } else { _parCh.pullUps  = _parCh.pullUps  & ~(1 << _bitNum) };
